@@ -5,6 +5,8 @@
 
 This game is a falling block puzzle game similar to Puyo Puyo, using AWS service icons.
 
+![overview](../images/game-v2-x4.gif)
+
 ## Game Features
 
 - AWS service icons fall like Puyo Puyo blocks
