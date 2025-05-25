@@ -4,6 +4,7 @@ import random
 import os
 import time
 from pygame.locals import *
+from images.aws_background import create_aws_background, draw_aws_title, draw_aws_button, draw_aws_text_box
 
 # Initialize pygame
 pygame.init()
@@ -21,14 +22,22 @@ BLUE = (0, 120, 215)
 RED = (255, 0, 0)
 GREEN = (0, 200, 0)
 
-# Fonts - Using Windows system fonts
+# AWS Colors
+AWS_ORANGE = (255, 153, 0)
+AWS_BLUE = (0, 124, 173)
+AWS_DARK_BLUE = (35, 47, 62)
+AWS_LIGHT_BLUE = (0, 160, 210)
+
+# Fonts - Using system fonts
 try:
-    # Try to use Windows system fonts
-    font_large = pygame.font.SysFont('meiryo', 36)  # Japanese Windows system font
+    # Try to use system fonts
+    font_title = pygame.font.SysFont('meiryo', 48, bold=True)  # Japanese system font
+    font_large = pygame.font.SysFont('meiryo', 36)
     font_medium = pygame.font.SysFont('meiryo', 28)
     font_small = pygame.font.SysFont('meiryo', 24)
 except:
     # Fallback to default fonts if not available
+    font_title = pygame.font.SysFont('arial', 48, bold=True)
     font_large = pygame.font.SysFont('arial', 36)
     font_medium = pygame.font.SysFont('arial', 28)
     font_small = pygame.font.SysFont('arial', 24)
@@ -45,6 +54,9 @@ game_over = False
 start_time = 0
 elapsed_time = 0
 typing_count = 0
+last_answer = ""
+answer_feedback = ""
+feedback_timer = 0
 
 # AWS Services with their corresponding image filenames
 aws_services = [
@@ -75,9 +87,13 @@ def load_images():
             print(f"Image not found for {service}: {image_path}")
     return images
 
-# Get a random AWS service
+# Get a random AWS service and remove it from the list to avoid duplicates
 def get_random_service(services):
-    return random.choice(services)
+    if not services:  # If all services have been used
+        return None
+    service = random.choice(services)
+    services.remove(service)  # Remove the service from the list
+    return service
 
 # Draw text with a background
 def draw_text(text, font, color, x, y, center=True):
@@ -117,11 +133,25 @@ def main():
     available_services = aws_services.copy()
     
     # Start screen
+    # Create AWS background once
+    aws_background = create_aws_background(WIDTH, HEIGHT)
+    
     while not game_active and not game_over:
-        screen.fill(WHITE)
-        draw_text("AWS Service Typing Game", font_large, BLUE, WIDTH//2, HEIGHT//3)
-        draw_text("Type the AWS service name shown (without 'AWS' or 'Amazon')", font_medium, BLACK, WIDTH//2, HEIGHT//2)
-        draw_text("Press SPACE to start", font_medium, BLACK, WIDTH//2, HEIGHT//2 + 50)
+        screen.blit(aws_background, (0, 0))
+        
+        # Draw AWS-style title
+        draw_aws_title(screen, "AWS Service Typing Game", font_title, WIDTH//2, HEIGHT//4)
+        
+        # Draw instruction text box
+        instruction_text = "Type the AWS service name shown (without 'AWS' or 'Amazon' prefix)"
+        draw_aws_text_box(screen, instruction_text, font_medium, WIDTH//2, HEIGHT//2 - 30, 600, 80)
+        
+        # Draw start button
+        start_button = draw_aws_button(screen, "Press SPACE to start", font_medium, WIDTH//2, HEIGHT//2 + 80, 300, 60)
+        
+        # Draw additional information
+        info_text = "Test your AWS knowledge with this typing game!"
+        draw_aws_text_box(screen, info_text, font_small, WIDTH//2, HEIGHT - 100, 500, 50)
         
         pygame.display.flip()
         
@@ -145,24 +175,53 @@ def main():
             game_active = False
             game_over = True
         
-        screen.fill(WHITE)
+        # Use a lighter background during gameplay
+        screen.fill(AWS_LIGHT_BLUE)
+        pygame.draw.rect(screen, AWS_DARK_BLUE, (0, 0, WIDTH, 80))  # Top bar
+        pygame.draw.rect(screen, AWS_DARK_BLUE, (0, HEIGHT-40, WIDTH, 40))  # Bottom bar
         
-        # Display service icon
+        # Display service icon with a nice frame
         if current_service in service_images:
+            # Draw a frame for the icon
+            icon_frame = pygame.Rect(WIDTH//2 - 110, 90, 220, 220)
+            pygame.draw.rect(screen, WHITE, icon_frame, border_radius=10)
+            pygame.draw.rect(screen, AWS_ORANGE, icon_frame, 3, border_radius=10)
+            
+            # Display the icon
             screen.blit(service_images[current_service], (WIDTH//2 - 100, 100))
         else:
             # Fallback if image not found
-            pygame.draw.rect(screen, GRAY, (WIDTH//2 - 100, 100, 200, 200))
+            icon_frame = pygame.Rect(WIDTH//2 - 110, 90, 220, 220)
+            pygame.draw.rect(screen, WHITE, icon_frame, border_radius=10)
+            pygame.draw.rect(screen, AWS_ORANGE, icon_frame, 3, border_radius=10)
             draw_text(current_service, font_large, BLACK, WIDTH//2, 200)
         
-        # Display input field
-        pygame.draw.rect(screen, GRAY, (WIDTH//2 - 200, 350, 400, 50))
-        draw_text(user_input, font_medium, BLACK, WIDTH//2, 375)
+        # Display input field with AWS styling
+        input_rect = pygame.Rect(WIDTH//2 - 200, 350, 400, 50)
+        pygame.draw.rect(screen, WHITE, input_rect, border_radius=5)
+        pygame.draw.rect(screen, AWS_BLUE, input_rect, 2, border_radius=5)
+        draw_text(user_input, font_medium, AWS_DARK_BLUE, WIDTH//2, 375)
         
-        # Display stats
-        draw_text(f"Time: {int(remaining_time)}s", font_small, BLACK, 100, 30, False)
-        draw_text(f"Correct: {correct_count}", font_small, GREEN, WIDTH - 200, 30, False)
-        draw_text(f"Mistakes: {mistake_count}", font_small, RED, WIDTH - 200, 60, False)
+        # Display stats with AWS styling
+        pygame.draw.rect(screen, WHITE, (20, 15, 180, 50), border_radius=5)
+        draw_text(f"Time: {int(remaining_time)}s", font_small, AWS_DARK_BLUE, 110, 40)
+        
+        pygame.draw.rect(screen, WHITE, (WIDTH - 220, 15, 200, 50), border_radius=5)
+        draw_text(f"Correct: {correct_count}", font_small, GREEN, WIDTH - 120, 30)
+        
+        pygame.draw.rect(screen, WHITE, (WIDTH - 220, 70, 200, 50), border_radius=5)
+        draw_text(f"Mistakes: {mistake_count}", font_small, RED, WIDTH - 120, 95)
+        
+        # Add instruction at the bottom
+        draw_text("Type the service name and press ENTER", font_small, WHITE, WIDTH//2, HEIGHT - 20)
+        
+        # Display answer feedback if available
+        if answer_feedback and time.time() - feedback_timer < 2:  # Show feedback for 2 seconds
+            feedback_color = GREEN if "Correct" in answer_feedback else RED
+            # Create a background for the feedback
+            feedback_bg = pygame.Rect(WIDTH//2 - 300, HEIGHT - 70, 600, 30)
+            pygame.draw.rect(screen, AWS_DARK_BLUE, feedback_bg, border_radius=5)
+            draw_text(answer_feedback, font_small, feedback_color, WIDTH//2, HEIGHT - 55)
         
         pygame.display.flip()
         
@@ -180,10 +239,19 @@ def main():
                     typing_count += len(user_input)
                     if user_input.lower() == current_service.lower():
                         correct_count += 1
+                        answer_feedback = "Correct!"
                     else:
                         mistake_count += 1
+                        answer_feedback = f"Wrong! Correct answer: {current_service}"
+                    
+                    feedback_timer = time.time()
+                    last_answer = user_input
                     user_input = ""
                     current_service = get_random_service(available_services)
+                    # If we've used all services, end the game
+                    if current_service is None:
+                        game_active = False
+                        game_over = True
                 else:
                     user_input += event.unicode
         
@@ -191,7 +259,8 @@ def main():
     
     # Game over screen
     while game_over:
-        screen.fill(WHITE)
+        # Black background for game over screen
+        screen.fill(BLACK)
         
         # Calculate typing speed (characters per second)
         total_time = min(game_time, elapsed_time)
@@ -200,12 +269,27 @@ def main():
         # Get title
         title = get_title(correct_count)
         
-        draw_text("Game Over!", font_large, BLUE, WIDTH//2, HEIGHT//4)
-        draw_text(f"Correct: {correct_count}", font_medium, GREEN, WIDTH//2, HEIGHT//2 - 60)
-        draw_text(f"Mistakes: {mistake_count}", font_medium, RED, WIDTH//2, HEIGHT//2)
-        draw_text(f"Typing Speed: {typing_speed:.1f} chars/second", font_medium, BLACK, WIDTH//2, HEIGHT//2 + 60)
-        draw_text(f"Your Title: {title}", font_large, BLUE, WIDTH//2, HEIGHT//2 + 120)
-        draw_text("Press SPACE to play again or ESC to quit", font_small, BLACK, WIDTH//2, HEIGHT - 100)
+        # Draw AWS-style title
+        draw_aws_title(screen, "Game Over!", font_title, WIDTH//2, HEIGHT//5)
+        
+        # Center all content vertically
+        center_y = HEIGHT // 2
+        
+        # Draw results in an AWS-style box with adjusted width
+        results_text = f"Correct: {correct_count}  |  Mistakes: {mistake_count}"
+        draw_aws_text_box(screen, results_text, font_medium, WIDTH//2, center_y - 70, 400, 60)
+        
+        # Draw typing speed with adjusted width
+        speed_text = f"Typing Speed: {typing_speed:.1f} chars/second"
+        draw_aws_text_box(screen, speed_text, font_medium, WIDTH//2, center_y, 400, 50)
+        
+        # Draw title with AWS-style with adjusted width
+        title_text = f"Your Title: {title}"
+        draw_aws_text_box(screen, title_text, font_large, WIDTH//2, center_y + 70, 400, 60, 
+                         bg_color=AWS_ORANGE, text_color=WHITE)
+        
+        # Draw restart button
+        restart_button = draw_aws_button(screen, "Press SPACE to play again", font_medium, WIDTH//2, HEIGHT - 80, 350, 50)
         
         pygame.display.flip()
         
@@ -222,7 +306,11 @@ def main():
                     mistake_count = 0
                     user_input = ""
                     typing_count = 0
+                    answer_feedback = ""
+                    last_answer = ""
                     start_time = time.time()
+                    # Reset available services
+                    available_services = aws_services.copy()
                     current_service = get_random_service(available_services)
                 elif event.key == K_ESCAPE:
                     pygame.quit()

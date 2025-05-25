@@ -5,8 +5,11 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
     python3 \
     python3-pip \
+    python3-pygame \
     curl \
     unzip \
+    fontconfig \
+    fonts-dejavu-core \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
