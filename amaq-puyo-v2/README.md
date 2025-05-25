@@ -1,5 +1,8 @@
 # AWS Puyo Puyo Game
 
+[![🇯🇵 日本語](https://img.shields.io/badge/%F0%9F%87%AF%F0%9F%87%B5-日本語-white)](./README.md)
+[![🇺🇸 English](https://img.shields.io/badge/%F0%9F%87%BA%F0%9F%87%B8-English-white)](./README-en.md)
+
 このゲームは、AWSサービスのアイコンを使用したぷよぷよ風の落ちものパズルゲームです。
 
 ## ゲームの特徴
