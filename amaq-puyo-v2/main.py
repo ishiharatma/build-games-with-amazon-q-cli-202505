@@ -958,9 +958,8 @@ def draw_board():
     
     controls = [
         "←→: 左右移動",
-        "↑: 回転",
-        "↓: 高速落下",
-        "SPACE: 一気に落とす"
+        "↑/SPACE: 回転",
+        "↓: 高速落下"
     ]
     
     for i, control in enumerate(controls):
