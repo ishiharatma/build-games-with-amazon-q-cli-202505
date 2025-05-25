@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puyo Puyo Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-info">
+            <div class="score-container">Score: <span id="score">0</span></div>
+            <div class="next-piece">
+                <h3>Next:</h3>
+                <canvas id="next-canvas" width="80" height="80"></canvas>
+            </div>
+            <div class="controls">
+                <h3>Controls:</h3>
+                <p>← → : Move</p>
+                <p>↑ : Rotate</p>
+                <p>↓ : Drop faster</p>
+                <p>Space : Hard drop</p>
+            </div>
+            <button id="start-button">Start Game</button>
+        </div>
+        <canvas id="game-canvas" width="240" height="480"></canvas>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
