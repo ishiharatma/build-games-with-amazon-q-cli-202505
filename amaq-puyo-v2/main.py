@@ -951,6 +951,22 @@ def draw_board():
         time_text = font.render(f"プレイタイム: {play_time}秒", True, BLACK)
         screen.blit(time_text, (info_area_x, stats_y + 60))
     
+    # Draw controls in the bottom right
+    controls_y = stats_y + 100
+    controls_title = font.render("操作方法:", True, BLACK)
+    screen.blit(controls_title, (info_area_x, controls_y))
+    
+    controls = [
+        "←→: 左右移動",
+        "↑: 回転",
+        "↓: 高速落下",
+        "SPACE: 一気に落とす"
+    ]
+    
+    for i, control in enumerate(controls):
+        control_text = font.render(control, True, BLACK)
+        screen.blit(control_text, (info_area_x, controls_y + 25 + i * 20))
+    
     # Draw chain count if active
     if chain_count > 1 and is_chain_active:
         # Only display for a certain duration
