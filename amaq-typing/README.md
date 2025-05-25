@@ -1,5 +1,7 @@
 # AWS Service Typing Game
 
+** Under construction **
+
 A typing game where AWS service icons appear and you need to type the service name correctly.
 
 ## Game Features
